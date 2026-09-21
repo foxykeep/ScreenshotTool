@@ -18,6 +18,13 @@ npm run dev
 
 Open [http://127.0.0.1:4521](http://127.0.0.1:4521).
 
+## Using the app
+
+1. **Open…** or drop an image onto the window, or **Capture screen**
+2. Choose **Rectangle**, **Arrow**, or **Text** to annotate (red). **Select** to move/resize; selected shapes show blue chrome
+3. **Undo** / **Redo**, or Delete/Backspace to remove the selection
+4. Export mode: **Download** or **Copy**, then run the export button
+
 ## Scripts
 
 | Script                 | What it does                             |

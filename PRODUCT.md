@@ -29,16 +29,23 @@ Blur/redact, multiple colors, curved/elbow arrows, multi-page decks, accounts, n
 - Default draw color: **red**; selection chrome: **blue**
 - Export control: toggle or segmented control between Download and Copy
 - Screen capture and file load both land on the **same canvas** for annotation
+- Text: fixed size; click to place, Enter/blur to commit, Escape to cancel; double-click an existing label to edit
+- Delete / Backspace removes the selected shape; ⌘/Ctrl+Z undo, ⌘/Ctrl+Shift+Z or Ctrl+Y redo
 
 ## Stack direction
 
-Vite + React + TypeScript on `localhost`. No backend for v1. Optional later: Tauri/Electron for dock icon or global hotkeys.
+Vite + React + TypeScript on `localhost` (dev server port **4521**). No backend for v1. Optional later: Tauri/Electron for dock icon or global hotkeys.
+
+## Known platform limits (v1)
+
+- **Screen capture** (`getDisplayMedia`): requires a user gesture and a secure context (`http://127.0.0.1` / HTTPS). The browser picker chooses window/display; permission can be denied.
+- **Clipboard copy**: `ClipboardItem` + `navigator.clipboard.write` for PNG — needs a secure context and a browser that supports image clipboard write (Safari/Firefox support varies).
 
 ## Build order (reference)
 
-1. Repo + Vite scaffold + agent layout _(done at scaffold)_
-2. Canvas shell + load image
-3. Screen capture into the same canvas
-4. Rectangle → Arrow → Text tools
-5. Undo / redo
-6. Export switch (download ↔ clipboard)
+1. Repo + Vite scaffold + agent layout _(done)_
+2. Canvas shell + load image _(done)_
+3. Screen capture into the same canvas _(done)_
+4. Rectangle → Arrow → Text tools _(done)_
+5. Undo / redo _(done)_
+6. Export switch (download ↔ clipboard) _(done)_
