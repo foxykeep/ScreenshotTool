@@ -1,0 +1,13 @@
+---
+description: Read PRODUCT.md before inventing ScreenshotTool UI or tool behavior
+alwaysApply: false
+---
+
+# Product docs
+
+Before changing UI, tools, colors, selection, or export behavior:
+
+1. Read [PRODUCT.md](../../PRODUCT.md)
+2. Match locked v1 scope (red draw, blue selection, fixed-size text, export switch)
+
+Do not add out-of-scope features (blur, multi-color, curved arrows, accounts) unless the user expands the product doc first.

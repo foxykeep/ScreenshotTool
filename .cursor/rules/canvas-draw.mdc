@@ -1,0 +1,18 @@
+---
+description: Light canvas draw-loop and immutable annotation model for undo
+globs: "src/**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# Canvas drawing
+
+## Annotation model
+
+- Prefer an **immutable** list (or equivalent) of annotation shapes so undo/redo is a history of snapshots or inverse commands
+- Mutations create new state; do not mutate shape objects in place during tool handlers
+
+## Draw loop
+
+- Keep the render/draw path allocation-light (avoid creating paths/objects every frame when reuse is easy)
+- Separate **model** (shapes + selection) from **view** (canvas/DOM rendering)
+- Selection chrome is blue; draw stroke/fill for shapes is red — see [PRODUCT.md](../../PRODUCT.md)

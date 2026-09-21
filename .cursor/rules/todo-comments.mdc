@@ -1,0 +1,24 @@
+---
+description: TODO comment format with owner handle
+globs: "**/*.{ts,tsx,js,jsx,css,md}"
+alwaysApply: false
+---
+
+# TODO comments (ScreenshotTool)
+
+When adding or editing `TODO` comments, include the **owner handle** in parentheses.
+
+## Format
+
+```ts
+// TODO(foxykeep) Wire drag-drop image load into the canvas.
+```
+
+- One space after the closing `)`
+- Imperative / sentence case; keep it brief
+- Use the repo owner's personal handle (e.g. `foxykeep`), not a GMID
+
+## Do not
+
+- `TODO:` without an owner
+- `TODO - fix later`

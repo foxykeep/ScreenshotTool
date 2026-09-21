@@ -1,0 +1,21 @@
+---
+description: ScreenshotTool workflow router — skills hold full procedures
+alwaysApply: true
+---
+
+# Workflow router
+
+Multi-step procedures live in `.cursor/skills/`. Read the matching skill when the task starts.
+
+| Task | Skill |
+| --- | --- |
+| Run Vite locally | [dev-run](../skills/dev-run/SKILL.md) |
+
+## Default agent boundaries
+
+- **Commit** only when the user asks.
+- **Never push**, force-push, or add a git remote unless the user explicitly asks.
+- **Do not** invent annotation UX that contradicts [PRODUCT.md](../../PRODUCT.md).
+- Prefer small, focused changes; scaffold first, then tools in build-order order.
+
+Policy details: other files under [rules/](.) load on demand when relevant.

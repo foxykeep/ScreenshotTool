@@ -1,0 +1,21 @@
+---
+description: Brief TSDoc on public canvas and export APIs
+globs: "src/**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# TSDoc for public APIs
+
+When adding **new** public modules used by the canvas or export path, add a short TSDoc summary.
+
+## Document
+
+- Exported types for annotations / tools
+- Public functions for load, capture, draw, export
+- Non-obvious React components that own canvas or toolbar behavior
+
+## Keep it simple
+
+- One short summary sentence
+- `@param` / `@returns` only when the name alone is unclear
+- Skip trivial private helpers and test boilerplate
