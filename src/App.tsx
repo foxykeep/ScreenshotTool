@@ -19,7 +19,7 @@ import {
   downloadPng,
   renderExportBlob,
 } from './lib/exportImage'
-import { loadImageFromFile } from './lib/imageSource'
+import { imageFileFromClipboardData, loadImageFromFile } from './lib/imageSource'
 import { EMPTY_DOCUMENT } from './types/annotations'
 import type {
   AnnotationDocument,
@@ -175,6 +175,28 @@ function App() {
     dismissStatus()
     handleRedo()
   }, [dismissStatus, handleRedo])
+
+  useEffect(() => {
+    const onPaste = (e: ClipboardEvent) => {
+      const target = e.target as HTMLElement | null
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable)
+      ) {
+        return
+      }
+      const file = imageFileFromClipboardData(e.clipboardData)
+      if (!file) {
+        return
+      }
+      e.preventDefault()
+      onFileChosen(file)
+    }
+    window.addEventListener('paste', onPaste)
+    return () => window.removeEventListener('paste', onPaste)
+  }, [onFileChosen])
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {

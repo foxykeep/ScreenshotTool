@@ -475,7 +475,7 @@ export function AnnotationCanvas({
         <div className="canvas-empty" role="status">
           Open an image to start annotating.
           <span className="canvas-empty-hint">
-            You can also drop an image file here.
+            Drop a file here, or paste with ⌘/Ctrl+V.
           </span>
         </div>
       ) : (

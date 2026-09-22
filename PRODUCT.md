@@ -10,7 +10,7 @@ Load a screenshot, annotate it, then export for sharing.
 
 | Ability    | Behavior                                                                  |
 | ---------- | ------------------------------------------------------------------------- |
-| Load image | File open + drag-drop                                                     |
+| Load image | File open + drag-drop + paste (⌘/Ctrl+V)                                  |
 | Rectangle  | Drag to create; red stroke; move + resize after                           |
 | Arrow      | Straight line + arrowhead; red; move + resize (length/angle) after create |
 | Text       | Place/edit fixed-size red text labels; move after create                  |
@@ -28,7 +28,7 @@ Blur/redact, multiple colors, curved/elbow arrows, multi-page decks, accounts, n
 - Shortcuts: **O** open, **S** select, **R** rectangle, **A** arrow, **T** text (ignored while editing text)
 - Default draw color: **red**; selection chrome: **blue**
 - Export control: toggle or segmented control between Download and Copy
-- File load lands on the canvas for annotation
+- File load lands on the canvas for annotation (Open, drop, or paste)
 - Text: fixed size; click to place, Enter/blur/click-canvas to commit, Escape to cancel; double-click an existing label (Select tool) to edit; overlay editor stays readable when the image is shrink-to-fit
 - Delete / Backspace removes the selected shape; ⌘/Ctrl+Z undo, ⌘/Ctrl+Shift+Z or Ctrl+Y redo
 - **Viewport fit:** the app fills the browser window without page scroll; the image shrinks to fit the canvas area (contain, no crop) with a small margin so you can draw outside the image. The editor chrome behind that margin stays the normal surface color (not white). Smaller images stay at natural size, centered. Drawing/hit-testing use image coordinates (which may fall outside the bitmap); export expands to fit out-of-bounds annotations and fills those zones with white

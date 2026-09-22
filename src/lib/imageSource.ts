@@ -20,3 +20,28 @@ export function loadImageFromFile(file: File): Promise<HTMLImageElement> {
     img.src = url
   })
 }
+
+/**
+ * Finds the first image file on a clipboard/data-transfer payload, if any.
+ */
+export function imageFileFromClipboardData(
+  clipboardData: DataTransfer | null | undefined,
+): File | null {
+  if (!clipboardData) {
+    return null
+  }
+  for (const item of clipboardData.items) {
+    if (item.kind === 'file' && item.type.startsWith('image/')) {
+      const file = item.getAsFile()
+      if (file) {
+        return file
+      }
+    }
+  }
+  for (const file of clipboardData.files) {
+    if (file.type.startsWith('image/')) {
+      return file
+    }
+  }
+  return null
+}
