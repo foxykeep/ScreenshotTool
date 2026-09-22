@@ -2,7 +2,7 @@
 
 Local (and GitHub Pages) web app to load a screenshot, annotate it (red rectangles, straight arrows, text), then export via download or clipboard.
 
-**Release:** [v1.0.0](https://github.com/foxykeep/ScreenshotTool/releases/tag/v1.0.0)  
+**Release:** [v1.1.0](https://github.com/foxykeep/ScreenshotTool/releases/tag/v1.1.0)  
 **Live:** [https://foxykeep.github.io/ScreenshotTool/](https://foxykeep.github.io/ScreenshotTool/)
 
 ## Stack
