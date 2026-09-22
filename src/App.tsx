@@ -27,6 +27,8 @@ import type {
   ToolId,
 } from './types/annotations'
 
+const CLIPBOARD_COPIED_STATUS = 'Copied image to clipboard.'
+
 /**
  * ScreenshotTool app: load/capture, annotate, undo/redo, export.
  */
@@ -42,6 +44,10 @@ function App() {
   const baselineRef = useRef<AnnotationDocument>(EMPTY_DOCUMENT)
 
   const doc = history.present
+  const clipboardFeedback =
+    status === CLIPBOARD_COPIED_STATUS ? status : null
+  const statusBarMessage =
+    status != null && status !== CLIPBOARD_COPIED_STATUS ? status : null
 
   const loadImage = useCallback(async (source: Promise<HTMLImageElement>) => {
     setStatus(null)
@@ -126,7 +132,7 @@ function App() {
         setStatus('Downloaded PNG.')
       } else {
         await copyPngToClipboard(blob)
-        setStatus('Copied image to clipboard.')
+        setStatus(CLIPBOARD_COPIED_STATUS)
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Export failed.'
@@ -229,6 +235,7 @@ function App() {
           canRedo={canRedo(history)}
           canExport={image != null}
           hasImage={image != null}
+          exportFeedback={clipboardFeedback}
           onOpenFile={() => fileInputRef.current?.click()}
           onCapture={onCapture}
           onClear={onClear}
@@ -251,9 +258,9 @@ function App() {
         />
       </main>
 
-      {status ? (
+      {statusBarMessage ? (
         <div className="status-bar" role="status">
-          {status}
+          {statusBarMessage}
         </div>
       ) : null}
     </div>

@@ -10,6 +10,8 @@ type ToolbarProps = {
   canRedo: boolean
   canExport: boolean
   hasImage: boolean
+  /** Shown just above the Copy / export action when set (e.g. clipboard success). */
+  exportFeedback?: string | null
   onOpenFile: () => void
   onCapture: () => void
   onClear: () => void
@@ -39,6 +41,7 @@ export function Toolbar({
   canRedo,
   canExport,
   hasImage,
+  exportFeedback = null,
   onOpenFile,
   onCapture,
   onClear,
@@ -119,33 +122,40 @@ export function Toolbar({
         </button>
       </div>
 
-      <div className="toolbar-group toolbar-export">
-        <div className="segmented" role="group" aria-label="Export mode">
+      <div className="toolbar-export">
+        {exportFeedback ? (
+          <div className="export-feedback" role="status">
+            {exportFeedback}
+          </div>
+        ) : null}
+        <div className="toolbar-group">
+          <div className="segmented" role="group" aria-label="Export mode">
+            <button
+              type="button"
+              className={exportMode === 'download' ? 'btn btn-active' : 'btn'}
+              aria-pressed={exportMode === 'download'}
+              onClick={() => onExportModeChange('download')}
+            >
+              Download
+            </button>
+            <button
+              type="button"
+              className={exportMode === 'clipboard' ? 'btn btn-active' : 'btn'}
+              aria-pressed={exportMode === 'clipboard'}
+              onClick={() => onExportModeChange('clipboard')}
+            >
+              Copy
+            </button>
+          </div>
           <button
             type="button"
-            className={exportMode === 'download' ? 'btn btn-active' : 'btn'}
-            aria-pressed={exportMode === 'download'}
-            onClick={() => onExportModeChange('download')}
+            className="btn btn-primary"
+            onClick={onExport}
+            disabled={!canExport}
           >
-            Download
-          </button>
-          <button
-            type="button"
-            className={exportMode === 'clipboard' ? 'btn btn-active' : 'btn'}
-            aria-pressed={exportMode === 'clipboard'}
-            onClick={() => onExportModeChange('clipboard')}
-          >
-            Copy
+            {exportMode === 'download' ? 'Download PNG' : 'Copy image'}
           </button>
         </div>
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={onExport}
-          disabled={!canExport}
-        >
-          {exportMode === 'download' ? 'Download PNG' : 'Copy image'}
-        </button>
       </div>
     </div>
   )

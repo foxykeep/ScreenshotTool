@@ -52,6 +52,17 @@
 
 .toolbar-export {
   margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+}
+
+.export-feedback {
+  font-size: 0.8rem;
+  color: var(--text-h);
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .btn {
