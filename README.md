@@ -1,6 +1,9 @@
 # ScreenshotTool
 
-Local web app to load a screenshot, annotate it (red rectangles, straight arrows, text), then export via download or clipboard.
+Local (and GitHub Pages) web app to load a screenshot, annotate it (red rectangles, straight arrows, text), then export via download or clipboard.
+
+**Release:** [v1.0.0](https://github.com/foxykeep/ScreenshotTool/releases/tag/v1.0.0)  
+**Live:** [https://foxykeep.github.io/ScreenshotTool/](https://foxykeep.github.io/ScreenshotTool/)
 
 ## Stack
 
@@ -40,5 +43,6 @@ Open [http://127.0.0.1:4521](http://127.0.0.1:4521).
 
 - Path: `/Users/CZ15V5/DevPerso/ScreenshotTool`
 - Remote: [foxykeep/ScreenshotTool](https://github.com/foxykeep/ScreenshotTool)
+- Pages: [foxykeep.github.io/ScreenshotTool](https://foxykeep.github.io/ScreenshotTool/)
 - Product intent: [PRODUCT.md](PRODUCT.md)
 - Agent guidance: [AGENTS.md](AGENTS.md) → [.cursor/](.cursor/)

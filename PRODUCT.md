@@ -35,7 +35,9 @@ Blur/redact, multiple colors, curved/elbow arrows, multi-page decks, accounts, n
 
 ## Stack direction
 
-Vite + React + TypeScript on `localhost` (dev server port **4521**). No backend for v1. Optional later: Tauri/Electron for dock icon or global hotkeys.
+Vite + React + TypeScript on `localhost` (dev server port **4521**) and GitHub Pages. No backend for v1. Optional later: Tauri/Electron for dock icon or global hotkeys.
+
+**Release 1.0** ships the v1 annotation + export slice. Live: https://foxykeep.github.io/ScreenshotTool/
 
 ## Known platform limits (v1)
 
