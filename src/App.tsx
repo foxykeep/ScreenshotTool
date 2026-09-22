@@ -19,7 +19,7 @@ import {
   downloadPng,
   renderExportBlob,
 } from './lib/exportImage'
-import { captureDisplayFrame, loadImageFromFile } from './lib/imageSource'
+import { loadImageFromFile } from './lib/imageSource'
 import { EMPTY_DOCUMENT } from './types/annotations'
 import type {
   AnnotationDocument,
@@ -30,7 +30,7 @@ import type {
 const CLIPBOARD_COPIED_STATUS = 'Copied image to clipboard.'
 
 /**
- * ScreenshotTool app: load/capture, annotate, undo/redo, export.
+ * ScreenshotTool app: load image, annotate, undo/redo, export.
  */
 function App() {
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -71,10 +71,6 @@ function App() {
     },
     [loadImage],
   )
-
-  const onCapture = useCallback(() => {
-    void loadImage(captureDisplayFrame())
-  }, [loadImage])
 
   const onClear = useCallback(() => {
     setImage(null)
@@ -164,11 +160,6 @@ function App() {
     dismissStatus()
     fileInputRef.current?.click()
   }, [dismissStatus])
-
-  const handleCaptureClick = useCallback(() => {
-    dismissStatus()
-    onCapture()
-  }, [dismissStatus, onCapture])
 
   const handleClearClick = useCallback(() => {
     dismissStatus()
@@ -268,7 +259,7 @@ function App() {
         <div className="header-text">
           <h1>ScreenshotTool</h1>
           <p className="tagline">
-            Load or capture a screenshot, annotate it, then export.
+            Load a screenshot, annotate it, then export.
           </p>
         </div>
         <Toolbar
@@ -282,7 +273,6 @@ function App() {
           hasImage={image != null}
           exportFeedback={clipboardFeedback}
           onOpenFile={handleOpenFile}
-          onCapture={handleCaptureClick}
           onClear={handleClearClick}
           onUndo={handleUndoClick}
           onRedo={handleRedoClick}

@@ -13,7 +13,6 @@ type ToolbarProps = {
   /** Shown just above the Copy / export action when set (e.g. clipboard success). */
   exportFeedback?: string | null
   onOpenFile: () => void
-  onCapture: () => void
   onClear: () => void
   onUndo: () => void
   onRedo: () => void
@@ -43,7 +42,6 @@ export function Toolbar({
   hasImage,
   exportFeedback = null,
   onOpenFile,
-  onCapture,
   onClear,
   onUndo,
   onRedo,
@@ -70,9 +68,6 @@ export function Toolbar({
             }
           }}
         />
-        <button type="button" className="btn" onClick={onCapture}>
-          Capture screen
-        </button>
         <button
           type="button"
           className="btn"

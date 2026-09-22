@@ -11,7 +11,7 @@ When adding **new** public modules used by the canvas or export path, add a shor
 ## Document
 
 - Exported types for annotations / tools
-- Public functions for load, capture, draw, export
+- Public functions for load, draw, export
 - Non-obvious React components that own canvas or toolbar behavior
 
 ## Keep it simple

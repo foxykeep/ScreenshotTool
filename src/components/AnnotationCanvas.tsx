@@ -455,7 +455,7 @@ export function AnnotationCanvas({
     <div className="canvas-workspace" ref={wrapRef}>
       {!image ? (
         <div className="canvas-empty" role="status">
-          Open an image or capture the screen to start annotating.
+          Open an image to start annotating.
           <span className="canvas-empty-hint">
             You can also drop an image file here.
           </span>
