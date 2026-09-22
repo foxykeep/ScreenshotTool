@@ -29,7 +29,7 @@ Blur/redact, multiple colors, curved/elbow arrows, multi-page decks, accounts, n
 - Default draw color: **red**; selection chrome: **blue**
 - Export control: toggle or segmented control between Download and Copy
 - Screen capture and file load both land on the **same canvas** for annotation
-- Text: fixed size; click to place, Enter/blur to commit, Escape to cancel; double-click an existing label to edit
+- Text: fixed size; click to place, Enter/blur/click-canvas to commit, Escape to cancel; double-click an existing label (Select tool) to edit; overlay editor stays readable when the image is shrink-to-fit
 - Delete / Backspace removes the selected shape; ⌘/Ctrl+Z undo, ⌘/Ctrl+Shift+Z or Ctrl+Y redo
 - **Viewport fit:** the app fills the browser window without page scroll; the image shrinks to fit the canvas area (contain, no crop). Smaller images stay at natural size, centered. Drawing/hit-testing use full image coordinates; export is always full-resolution PNG
 

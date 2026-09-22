@@ -163,11 +163,11 @@
 .text-editor {
   position: absolute;
   min-width: 8rem;
-  min-height: 1.4em;
+  min-height: 1.6em;
   margin: 0;
-  padding: 2px 4px;
+  padding: 2px 6px;
   border: 1.5px solid var(--selection);
-  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
   color: var(--draw);
   font-family: 'Segoe UI', system-ui, sans-serif;
   font-weight: 600;
@@ -175,6 +175,11 @@
   resize: both;
   outline: none;
   z-index: 2;
+  box-shadow: 0 1px 4px color-mix(in srgb, #000 25%, transparent);
+}
+
+.text-editor::placeholder {
+  color: color-mix(in srgb, var(--draw) 55%, transparent);
 }
 
 .status-bar {

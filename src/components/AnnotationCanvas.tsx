@@ -77,6 +77,9 @@ export function AnnotationCanvas({
   const draftRef = useRef<Annotation | null>(null)
   const [draft, setDraft] = useState<Annotation | null>(null)
   const [textEditor, setTextEditor] = useState<TextEditor | null>(null)
+  const textEditorRef = useRef<TextEditor | null>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const ignoreTextBlurRef = useRef(false)
   const [viewSize, setViewSize] = useState({ width: 0, height: 0 })
 
   const pushLive = useCallback(
@@ -97,6 +100,32 @@ export function AnnotationCanvas({
       liveDocRef.current = doc
     }
   }, [doc])
+
+  useEffect(() => {
+    textEditorRef.current = textEditor
+  }, [textEditor])
+
+  // Focus the overlay after the placing click finishes so focus sticks.
+  const textEditorId = textEditor?.id ?? null
+  useEffect(() => {
+    if (textEditorId == null) {
+      return
+    }
+    const timer = window.setTimeout(() => {
+      if (textEditorRef.current?.id !== textEditorId) {
+        return
+      }
+      const node = textareaRef.current
+      if (!node) {
+        return
+      }
+      node.focus()
+      if (!textEditorRef.current.isNew) {
+        node.select()
+      }
+    }, 0)
+    return () => window.clearTimeout(timer)
+  }, [textEditorId])
 
   useEffect(() => {
     const wrap = wrapRef.current
@@ -145,11 +174,15 @@ export function AnnotationCanvas({
 
   const finishTextEditor = useCallback(
     (save: boolean) => {
-      const editor = textEditor
+      const editor = textEditorRef.current
       if (!editor) {
         return
       }
+      // Prevent the unmount blur (and Strict Mode remount blur) from re-entering.
+      ignoreTextBlurRef.current = true
+      textEditorRef.current = null
       setTextEditor(null)
+
       const text = editor.text.trim()
       if (save && text.length > 0) {
         const shape: TextAnnotation = {
@@ -165,13 +198,26 @@ export function AnnotationCanvas({
           shapes: liveDocRef.current.shapes.filter((s) => s.id !== editor.id),
           selectedId: null,
         })
+      } else if (editor.isNew) {
+        // Abandoned empty label — clear the dangling selection id.
+        onSelect(null)
       }
+
+      queueMicrotask(() => {
+        ignoreTextBlurRef.current = false
+      })
     },
-    [textEditor, onDocumentCommit],
+    [onDocumentCommit, onSelect],
   )
 
   const onPointerDown = (e: ReactPointerEvent<HTMLCanvasElement>) => {
-    if (!image || textEditor) {
+    if (!image) {
+      return
+    }
+    // Canvas is not focusable, so clicking it does not blur the textarea —
+    // commit/cancel the open editor explicitly, then wait for the next click.
+    if (textEditorRef.current) {
+      finishTextEditor(true)
       return
     }
     const pt = toImagePoint(e.clientX, e.clientY)
@@ -182,18 +228,29 @@ export function AnnotationCanvas({
     if (!canvas) {
       return
     }
-    canvas.setPointerCapture(e.pointerId)
     const ctx = canvas.getContext('2d')
     if (!ctx) {
       return
     }
 
     if (tool === 'text') {
+      // Do not capture the pointer — that fights the overlay textarea focus.
+      e.preventDefault()
       const id = createAnnotationId()
-      setTextEditor({ id, x: pt.x, y: pt.y, text: '', isNew: true })
+      const editor: TextEditor = {
+        id,
+        x: pt.x,
+        y: pt.y,
+        text: '',
+        isNew: true,
+      }
+      textEditorRef.current = editor
+      setTextEditor(editor)
       onSelect(id)
       return
     }
+
+    canvas.setPointerCapture(e.pointerId)
 
     if (tool === 'rectangle') {
       const id = createAnnotationId()
@@ -263,13 +320,16 @@ export function AnnotationCanvas({
 
     onSelect(hit.shape.id)
     if (e.detail === 2 && hit.shape.kind === 'text') {
-      setTextEditor({
+      e.preventDefault()
+      const editor: TextEditor = {
         id: hit.shape.id,
         x: hit.shape.x,
         y: hit.shape.y,
         text: hit.shape.text,
         isNew: false,
-      })
+      }
+      textEditorRef.current = editor
+      setTextEditor(editor)
       return
     }
     dragRef.current = {
@@ -428,22 +488,43 @@ export function AnnotationCanvas({
           />
           {textEditor && layout ? (
             <textarea
+              ref={textareaRef}
               className="text-editor"
-              autoFocus
               value={textEditor.text}
               placeholder="Label"
+              aria-label="Text label"
               style={{
                 left: (textEditor.x / image.naturalWidth) * layout.cssWidth,
                 top: (textEditor.y / image.naturalHeight) * layout.cssHeight,
-                fontSize: `${(TEXT_FONT_SIZE / image.naturalHeight) * layout.cssHeight}px`,
+                // Match on-canvas scale but keep a readable minimum while editing.
+                fontSize: `${Math.max(
+                  14,
+                  (TEXT_FONT_SIZE / image.naturalHeight) * layout.cssHeight,
+                )}px`,
               }}
-              onChange={(e) =>
-                setTextEditor((ed) =>
-                  ed ? { ...ed, text: e.target.value } : ed,
-                )
-              }
-              onBlur={() => finishTextEditor(true)}
+              onChange={(e) => {
+                const text = e.target.value
+                setTextEditor((ed) => {
+                  if (!ed) {
+                    return ed
+                  }
+                  const next = { ...ed, text }
+                  textEditorRef.current = next
+                  return next
+                })
+              }}
+              onPointerDown={(e) => {
+                // Keep focus on the overlay; don't let the canvas start a new gesture.
+                e.stopPropagation()
+              }}
+              onBlur={() => {
+                if (ignoreTextBlurRef.current) {
+                  return
+                }
+                finishTextEditor(true)
+              }}
               onKeyDown={(e) => {
+                e.stopPropagation()
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault()
                   finishTextEditor(true)
