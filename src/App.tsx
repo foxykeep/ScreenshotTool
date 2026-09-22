@@ -120,6 +120,10 @@ function App() {
     })
   }, [])
 
+  const dismissStatus = useCallback(() => {
+    setStatus(null)
+  }, [])
+
   const handleExport = useCallback(async () => {
     if (!image) {
       return
@@ -139,6 +143,47 @@ function App() {
       setStatus(message)
     }
   }, [image, doc, exportMode])
+
+  const handleToolChange = useCallback(
+    (next: ToolId) => {
+      dismissStatus()
+      setTool(next)
+    },
+    [dismissStatus],
+  )
+
+  const handleExportModeChange = useCallback(
+    (next: ExportMode) => {
+      dismissStatus()
+      setExportMode(next)
+    },
+    [dismissStatus],
+  )
+
+  const handleOpenFile = useCallback(() => {
+    dismissStatus()
+    fileInputRef.current?.click()
+  }, [dismissStatus])
+
+  const handleCaptureClick = useCallback(() => {
+    dismissStatus()
+    onCapture()
+  }, [dismissStatus, onCapture])
+
+  const handleClearClick = useCallback(() => {
+    dismissStatus()
+    onClear()
+  }, [dismissStatus, onClear])
+
+  const handleUndoClick = useCallback(() => {
+    dismissStatus()
+    handleUndo()
+  }, [dismissStatus, handleUndo])
+
+  const handleRedoClick = useCallback(() => {
+    dismissStatus()
+    handleRedo()
+  }, [dismissStatus, handleRedo])
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -228,19 +273,19 @@ function App() {
         </div>
         <Toolbar
           tool={tool}
-          onToolChange={setTool}
+          onToolChange={handleToolChange}
           exportMode={exportMode}
-          onExportModeChange={setExportMode}
+          onExportModeChange={handleExportModeChange}
           canUndo={canUndo(history)}
           canRedo={canRedo(history)}
           canExport={image != null}
           hasImage={image != null}
           exportFeedback={clipboardFeedback}
-          onOpenFile={() => fileInputRef.current?.click()}
-          onCapture={onCapture}
-          onClear={onClear}
-          onUndo={handleUndo}
-          onRedo={handleRedo}
+          onOpenFile={handleOpenFile}
+          onCapture={handleCaptureClick}
+          onClear={handleClearClick}
+          onUndo={handleUndoClick}
+          onRedo={handleRedoClick}
           onExport={() => void handleExport()}
           fileInputRef={fileInputRef}
           onFileChosen={onFileChosen}
