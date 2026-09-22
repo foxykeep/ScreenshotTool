@@ -37,10 +37,15 @@
   box-sizing: border-box;
 }
 
-body {
+html,
+body,
+#root {
+  height: 100%;
   margin: 0;
+  overflow: hidden;
 }
 
 #root {
-  min-height: 100svh;
+  height: 100svh;
+  max-height: 100svh;
 }

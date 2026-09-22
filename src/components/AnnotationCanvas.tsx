@@ -485,6 +485,11 @@ function cursorForTool(tool: ToolId): string {
   }
 }
 
+/**
+ * Shrink-to-fit (contain) the image in the workspace. Never upscales:
+ * smaller images stay at natural size and are centered by flex layout.
+ * Canvas bitmap stays at naturalWidth×naturalHeight for hit-test/export.
+ */
 function computeLayout(
   image: HTMLImageElement | null,
   viewW: number,

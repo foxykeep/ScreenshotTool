@@ -31,6 +31,7 @@ Blur/redact, multiple colors, curved/elbow arrows, multi-page decks, accounts, n
 - Screen capture and file load both land on the **same canvas** for annotation
 - Text: fixed size; click to place, Enter/blur to commit, Escape to cancel; double-click an existing label to edit
 - Delete / Backspace removes the selected shape; ⌘/Ctrl+Z undo, ⌘/Ctrl+Shift+Z or Ctrl+Y redo
+- **Viewport fit:** the app fills the browser window without page scroll; the image shrinks to fit the canvas area (contain, no crop). Smaller images stay at natural size, centered. Drawing/hit-testing use full image coordinates; export is always full-resolution PNG
 
 ## Stack direction
 
