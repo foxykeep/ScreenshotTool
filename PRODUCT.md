@@ -31,7 +31,7 @@ Blur/redact, multiple colors, curved/elbow arrows, multi-page decks, accounts, n
 - File load lands on the canvas for annotation
 - Text: fixed size; click to place, Enter/blur/click-canvas to commit, Escape to cancel; double-click an existing label (Select tool) to edit; overlay editor stays readable when the image is shrink-to-fit
 - Delete / Backspace removes the selected shape; ⌘/Ctrl+Z undo, ⌘/Ctrl+Shift+Z or Ctrl+Y redo
-- **Viewport fit:** the app fills the browser window without page scroll; the image shrinks to fit the canvas area (contain, no crop) with a small white margin so you can draw outside the image. Smaller images stay at natural size, centered. Drawing/hit-testing use image coordinates (which may fall outside the bitmap); export expands to fit out-of-bounds annotations and fills those zones with white
+- **Viewport fit:** the app fills the browser window without page scroll; the image shrinks to fit the canvas area (contain, no crop) with a small margin so you can draw outside the image. The editor chrome behind that margin stays the normal surface color (not white). Smaller images stay at natural size, centered. Drawing/hit-testing use image coordinates (which may fall outside the bitmap); export expands to fit out-of-bounds annotations and fills those zones with white
 
 ## Stack direction
 

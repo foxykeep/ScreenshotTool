@@ -160,8 +160,7 @@ export function AnnotationCanvas({
       return
     }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    ctx.fillStyle = '#ffffff'
-    ctx.fillRect(0, 0, viewW, viewH)
+    ctx.clearRect(0, 0, viewW, viewH)
     ctx.drawImage(
       image,
       offsetX,
@@ -569,8 +568,9 @@ function cursorForTool(tool: ToolId): string {
 
 /**
  * Layout for a full-workspace canvas with the image centered (contain, no
- * upscale) and a small margin so the white area around the image is drawable.
+ * upscale) and a small margin so the area around the image is drawable.
  * Pointer mapping uses image coordinates that may fall outside [0,iw]×[0,ih].
+ * The editor does not paint white around the image; export fills that on output.
  */
 function computeLayout(
   image: HTMLImageElement | null,

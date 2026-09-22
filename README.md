@@ -21,9 +21,9 @@ Open [http://127.0.0.1:4521](http://127.0.0.1:4521).
 ## Using the app
 
 1. **Open…** or drop an image onto the window (**O**)
-2. Choose **Rectangle** (**R**), **Arrow** (**A**), or **Text** (**T**) to annotate (red). **Select** (**S**) to move/resize; selected shapes show blue chrome. You can draw into the white margin around the image
+2. Choose **Rectangle** (**R**), **Arrow** (**A**), or **Text** (**T**) to annotate (red). **Select** (**S**) to move/resize; selected shapes show blue chrome. You can draw into the margin around the image
 3. **Undo** / **Redo**, or Delete/Backspace to remove the selection
-4. Export mode: **Download** or **Copy**, then run the export button (PNG expands for out-of-bounds marks with a white fill)
+4. Export mode: **Download** or **Copy**, then run the export button (PNG expands for out-of-bounds marks; only the export fills those zones with white)
 
 ## Scripts
 
