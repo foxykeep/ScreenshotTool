@@ -191,7 +191,7 @@ function App() {
       const mod = e.metaKey || e.ctrlKey
       if (mod && e.key.toLowerCase() === 'z' && !e.shiftKey) {
         e.preventDefault()
-        handleUndo()
+        handleUndoClick()
         return
       }
       if (
@@ -200,7 +200,7 @@ function App() {
           (e.key.toLowerCase() === 'z' && e.shiftKey))
       ) {
         e.preventDefault()
-        handleRedo()
+        handleRedoClick()
         return
       }
 
@@ -210,6 +210,7 @@ function App() {
           return
         }
         e.preventDefault()
+        dismissStatus()
         setHistory((h) => {
           const id = h.present.selectedId
           if (id == null) {
@@ -223,11 +224,58 @@ function App() {
           baselineRef.current = committed.present
           return committed
         })
+        return
+      }
+
+      if (mod || e.altKey) {
+        return
+      }
+
+      const key = e.key.toLowerCase()
+      if (key === 'o') {
+        e.preventDefault()
+        handleOpenFile()
+        return
+      }
+      if (key === 's') {
+        e.preventDefault()
+        handleToolChange('select')
+        return
+      }
+      if (key === 'r') {
+        if (image == null) {
+          return
+        }
+        e.preventDefault()
+        handleToolChange('rectangle')
+        return
+      }
+      if (key === 'a') {
+        if (image == null) {
+          return
+        }
+        e.preventDefault()
+        handleToolChange('arrow')
+        return
+      }
+      if (key === 't') {
+        if (image == null) {
+          return
+        }
+        e.preventDefault()
+        handleToolChange('text')
       }
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [handleUndo, handleRedo])
+  }, [
+    image,
+    dismissStatus,
+    handleUndoClick,
+    handleRedoClick,
+    handleOpenFile,
+    handleToolChange,
+  ])
 
   const onDragOver = (e: DragEvent) => {
     e.preventDefault()

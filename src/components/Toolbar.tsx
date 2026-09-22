@@ -21,11 +21,11 @@ type ToolbarProps = {
   onFileChosen: (file: File) => void
 }
 
-const TOOLS: { id: ToolId; label: string }[] = [
-  { id: 'select', label: 'Select' },
-  { id: 'rectangle', label: 'Rectangle' },
-  { id: 'arrow', label: 'Arrow' },
-  { id: 'text', label: 'Text' },
+const TOOLS: { id: ToolId; label: string; shortcut: string }[] = [
+  { id: 'select', label: 'Select', shortcut: 'S' },
+  { id: 'rectangle', label: 'Rectangle', shortcut: 'R' },
+  { id: 'arrow', label: 'Arrow', shortcut: 'A' },
+  { id: 'text', label: 'Text', shortcut: 'T' },
 ]
 
 /**
@@ -52,7 +52,12 @@ export function Toolbar({
   return (
     <div className="toolbar" role="toolbar" aria-label="Screenshot tools">
       <div className="toolbar-group">
-        <button type="button" className="btn" onClick={onOpenFile}>
+        <button
+          type="button"
+          className="btn"
+          onClick={onOpenFile}
+          title="Open image (O)"
+        >
           Open…
         </button>
         <input
@@ -90,6 +95,7 @@ export function Toolbar({
             type="button"
             className={tool === t.id ? 'btn btn-active' : 'btn'}
             aria-pressed={tool === t.id}
+            title={`${t.label} (${t.shortcut})`}
             onClick={() => onToolChange(t.id)}
             disabled={!hasImage && t.id !== 'select'}
           >
