@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
@@ -140,21 +141,36 @@ export function AnnotationCanvas({
     return () => ro.disconnect()
   }, [])
 
-  const layout = computeLayout(image, viewSize.width, viewSize.height)
+  const layout = useMemo(
+    () => computeLayout(image, viewSize.width, viewSize.height),
+    [image, viewSize.width, viewSize.height],
+  )
 
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas || !image || !layout) {
       return
     }
-    canvas.width = image.naturalWidth
-    canvas.height = image.naturalHeight
+    const dpr = window.devicePixelRatio || 1
+    const { viewW, viewH, imageScale, offsetX, offsetY } = layout
+    canvas.width = Math.max(1, Math.floor(viewW * dpr))
+    canvas.height = Math.max(1, Math.floor(viewH * dpr))
     const ctx = canvas.getContext('2d')
     if (!ctx) {
       return
     }
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-    ctx.drawImage(image, 0, 0)
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, viewW, viewH)
+    ctx.drawImage(
+      image,
+      offsetX,
+      offsetY,
+      image.naturalWidth * imageScale,
+      image.naturalHeight * imageScale,
+    )
+    ctx.translate(offsetX, offsetY)
+    ctx.scale(imageScale, imageScale)
     drawDocument(ctx, doc, draft)
   }, [image, doc, draft, layout])
 
@@ -165,9 +181,12 @@ export function AnnotationCanvas({
         return null
       }
       const rect = canvas.getBoundingClientRect()
-      const x = ((clientX - rect.left) / rect.width) * canvas.width
-      const y = ((clientY - rect.top) / rect.height) * canvas.height
-      return { x, y }
+      const sx = clientX - rect.left
+      const sy = clientY - rect.top
+      return {
+        x: (sx - layout.offsetX) / layout.imageScale,
+        y: (sy - layout.offsetY) / layout.imageScale,
+      }
     },
     [layout],
   )
@@ -461,26 +480,11 @@ export function AnnotationCanvas({
           </span>
         </div>
       ) : (
-        <div
-          className="canvas-stage"
-          style={
-            layout
-              ? { width: layout.cssWidth, height: layout.cssHeight }
-              : undefined
-          }
-        >
+        <div className="canvas-stage">
           <canvas
             ref={canvasRef}
             className="annotation-canvas"
-            style={
-              layout
-                ? {
-                    width: layout.cssWidth,
-                    height: layout.cssHeight,
-                    cursor: cursorForTool(tool),
-                  }
-                : undefined
-            }
+            style={{ cursor: cursorForTool(tool) }}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
@@ -494,13 +498,10 @@ export function AnnotationCanvas({
               placeholder="Label"
               aria-label="Text label"
               style={{
-                left: (textEditor.x / image.naturalWidth) * layout.cssWidth,
-                top: (textEditor.y / image.naturalHeight) * layout.cssHeight,
+                left: layout.offsetX + textEditor.x * layout.imageScale,
+                top: layout.offsetY + textEditor.y * layout.imageScale,
                 // Match on-canvas scale but keep a readable minimum while editing.
-                fontSize: `${Math.max(
-                  14,
-                  (TEXT_FONT_SIZE / image.naturalHeight) * layout.cssHeight,
-                )}px`,
+                fontSize: `${Math.max(14, TEXT_FONT_SIZE * layout.imageScale)}px`,
               }}
               onChange={(e) => {
                 const text = e.target.value
@@ -567,23 +568,40 @@ function cursorForTool(tool: ToolId): string {
 }
 
 /**
- * Shrink-to-fit (contain) the image in the workspace. Never upscales:
- * smaller images stay at natural size and are centered by flex layout.
- * Canvas bitmap stays at naturalWidth×naturalHeight for hit-test/export.
+ * Layout for a full-workspace canvas with the image centered (contain, no
+ * upscale) and a small margin so the white area around the image is drawable.
+ * Pointer mapping uses image coordinates that may fall outside [0,iw]×[0,ih].
  */
 function computeLayout(
   image: HTMLImageElement | null,
   viewW: number,
   viewH: number,
-): { cssWidth: number; cssHeight: number } | null {
+): {
+  viewW: number
+  viewH: number
+  imageScale: number
+  offsetX: number
+  offsetY: number
+} | null {
   if (!image || viewW <= 0 || viewH <= 0) {
     return null
   }
   const iw = image.naturalWidth
   const ih = image.naturalHeight
-  const scale = Math.min(viewW / iw, viewH / ih, 1)
+  const margin = Math.max(
+    24,
+    Math.min(64, Math.floor(Math.min(viewW, viewH) * 0.05)),
+  )
+  const availW = Math.max(1, viewW - margin * 2)
+  const availH = Math.max(1, viewH - margin * 2)
+  const imageScale = Math.min(availW / iw, availH / ih, 1)
+  const cssW = iw * imageScale
+  const cssH = ih * imageScale
   return {
-    cssWidth: Math.max(1, Math.floor(iw * scale)),
-    cssHeight: Math.max(1, Math.floor(ih * scale)),
+    viewW,
+    viewH,
+    imageScale,
+    offsetX: (viewW - cssW) / 2,
+    offsetY: (viewH - cssH) / 2,
   }
 }
