@@ -58,9 +58,11 @@
   align-items: center;
 }
 
-.export-copy-anchor {
+.export-feedback-anchor {
   position: relative;
   display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
 }
 
 .export-feedback-float {

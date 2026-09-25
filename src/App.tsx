@@ -23,7 +23,17 @@ import { imageFileFromClipboardData, loadImageFromFile } from './lib/imageSource
 import { EMPTY_DOCUMENT } from './types/annotations'
 import type { AnnotationDocument, ToolId } from './types/annotations'
 
+const DOWNLOADED_STATUS = 'Downloaded PNG.'
 const CLIPBOARD_COPIED_STATUS = 'Copied image to clipboard.'
+
+const EXPORT_SUCCESS_STATUSES = new Set([
+  DOWNLOADED_STATUS,
+  CLIPBOARD_COPIED_STATUS,
+])
+
+function isExportSuccessStatus(message: string): boolean {
+  return EXPORT_SUCCESS_STATUSES.has(message)
+}
 
 /**
  * ScreenshotTool app: load image, annotate, undo/redo, export.
@@ -39,10 +49,10 @@ function App() {
   const baselineRef = useRef<AnnotationDocument>(EMPTY_DOCUMENT)
 
   const doc = history.present
-  const clipboardFeedback =
-    status === CLIPBOARD_COPIED_STATUS ? status : null
+  const exportFeedback =
+    status != null && isExportSuccessStatus(status) ? status : null
   const statusBarMessage =
-    status != null && status !== CLIPBOARD_COPIED_STATUS ? status : null
+    status != null && !isExportSuccessStatus(status) ? status : null
 
   const loadImage = useCallback(async (source: Promise<HTMLImageElement>) => {
     setStatus(null)
@@ -123,7 +133,7 @@ function App() {
     try {
       const blob = await renderExportBlob(image, doc)
       downloadPng(blob)
-      setStatus('Downloaded PNG.')
+      setStatus(DOWNLOADED_STATUS)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Export failed.'
       setStatus(message)
@@ -345,7 +355,7 @@ function App() {
           canRedo={canRedo(history)}
           canExport={image != null}
           hasImage={image != null}
-          copyFeedback={clipboardFeedback}
+          exportFeedback={exportFeedback}
           onOpenFile={handleOpenFile}
           onClear={handleClearClick}
           onUndo={handleUndoClick}

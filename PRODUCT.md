@@ -27,7 +27,7 @@ Blur/redact, multiple colors, curved/elbow arrows, multi-page decks, accounts, n
 - Tools: Select, Rectangle, Arrow, Text (plus Clear image)
 - Shortcuts: **O** open, **S** select, **R** rectangle, **A** arrow, **T** text (ignored while editing text)
 - Default draw color: **red**; selection chrome: **blue**
-- Export: always-visible **Download** and **Copy** buttons; copy success shows a floating label above Copy (no toolbar layout shift)
+- Export: always-visible **Download** and **Copy** buttons; success messages (`Downloaded PNG.`, `Copied image to clipboard.`) share a floating label above the export buttons (no toolbar layout shift)
 - File load lands on the canvas for annotation (Open, drop, or paste)
 - Text: fixed size; click to place, Enter/blur/click-canvas to commit, Escape to cancel; double-click an existing label (Select tool) to edit; overlay editor stays readable when the image is shrink-to-fit
 - Delete / Backspace removes the selected shape; ⌘/Ctrl+Z undo, ⌘/Ctrl+Shift+Z or Ctrl+Y redo

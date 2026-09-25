@@ -8,8 +8,8 @@ type ToolbarProps = {
   canRedo: boolean
   canExport: boolean
   hasImage: boolean
-  /** Clipboard success message; shown near Copy without shifting layout. */
-  copyFeedback?: string | null
+  /** Download/Copy success message; floating above export buttons (no layout shift). */
+  exportFeedback?: string | null
   onOpenFile: () => void
   onClear: () => void
   onUndo: () => void
@@ -37,7 +37,7 @@ export function Toolbar({
   canRedo,
   canExport,
   hasImage,
-  copyFeedback = null,
+  exportFeedback = null,
   onOpenFile,
   onClear,
   onUndo,
@@ -47,7 +47,8 @@ export function Toolbar({
   fileInputRef,
   onFileChosen,
 }: ToolbarProps) {
-  const copyFeedbackVisible = copyFeedback != null && copyFeedback.length > 0
+  const exportFeedbackVisible =
+    exportFeedback != null && exportFeedback.length > 0
 
   return (
     <div className="toolbar" role="toolbar" aria-label="Screenshot tools">
@@ -124,29 +125,29 @@ export function Toolbar({
       </div>
 
       <div className="toolbar-export">
-        <div className="toolbar-group toolbar-export-actions">
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={onDownload}
-            disabled={!canExport}
-            title="Download annotated PNG"
+        <div className="export-feedback-anchor">
+          <span
+            className={
+              exportFeedbackVisible
+                ? 'export-feedback-float is-visible'
+                : 'export-feedback-float'
+            }
+            role="status"
+            aria-live="polite"
+            aria-hidden={!exportFeedbackVisible}
           >
-            Download
-          </button>
-          <div className="export-copy-anchor">
-            <span
-              className={
-                copyFeedbackVisible
-                  ? 'export-feedback-float is-visible'
-                  : 'export-feedback-float'
-              }
-              role="status"
-              aria-live="polite"
-              aria-hidden={!copyFeedbackVisible}
+            {exportFeedback ?? ''}
+          </span>
+          <div className="toolbar-group toolbar-export-actions">
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={onDownload}
+              disabled={!canExport}
+              title="Download annotated PNG"
             >
-              {copyFeedback ?? ''}
-            </span>
+              Download
+            </button>
             <button
               type="button"
               className="btn btn-primary"
