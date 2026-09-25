@@ -1,22 +1,21 @@
 import type { RefObject } from 'react'
-import type { ExportMode, ToolId } from '../types/annotations'
+import type { ToolId } from '../types/annotations'
 
 type ToolbarProps = {
   tool: ToolId
   onToolChange: (tool: ToolId) => void
-  exportMode: ExportMode
-  onExportModeChange: (mode: ExportMode) => void
   canUndo: boolean
   canRedo: boolean
   canExport: boolean
   hasImage: boolean
-  /** Shown just above the Copy / export action when set (e.g. clipboard success). */
-  exportFeedback?: string | null
+  /** Clipboard success message; shown near Copy without shifting layout. */
+  copyFeedback?: string | null
   onOpenFile: () => void
   onClear: () => void
   onUndo: () => void
   onRedo: () => void
-  onExport: () => void
+  onDownload: () => void
+  onCopy: () => void
   fileInputRef: RefObject<HTMLInputElement | null>
   onFileChosen: (file: File) => void
 }
@@ -29,26 +28,27 @@ const TOOLS: { id: ToolId; label: string; shortcut: string }[] = [
 ]
 
 /**
- * Top toolbar: source actions, tools, undo/redo, and export switch.
+ * Top toolbar: source actions, tools, undo/redo, and export buttons.
  */
 export function Toolbar({
   tool,
   onToolChange,
-  exportMode,
-  onExportModeChange,
   canUndo,
   canRedo,
   canExport,
   hasImage,
-  exportFeedback = null,
+  copyFeedback = null,
   onOpenFile,
   onClear,
   onUndo,
   onRedo,
-  onExport,
+  onDownload,
+  onCopy,
   fileInputRef,
   onFileChosen,
 }: ToolbarProps) {
+  const copyFeedbackVisible = copyFeedback != null && copyFeedback.length > 0
+
   return (
     <div className="toolbar" role="toolbar" aria-label="Screenshot tools">
       <div className="toolbar-group">
@@ -124,38 +124,39 @@ export function Toolbar({
       </div>
 
       <div className="toolbar-export">
-        {exportFeedback ? (
-          <div className="export-feedback" role="status">
-            {exportFeedback}
-          </div>
-        ) : null}
-        <div className="toolbar-group">
-          <div className="segmented" role="group" aria-label="Export mode">
-            <button
-              type="button"
-              className={exportMode === 'download' ? 'btn btn-active' : 'btn'}
-              aria-pressed={exportMode === 'download'}
-              onClick={() => onExportModeChange('download')}
+        <div className="toolbar-group toolbar-export-actions">
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={onDownload}
+            disabled={!canExport}
+            title="Download annotated PNG"
+          >
+            Download
+          </button>
+          <div className="export-copy-anchor">
+            <span
+              className={
+                copyFeedbackVisible
+                  ? 'export-feedback-float is-visible'
+                  : 'export-feedback-float'
+              }
+              role="status"
+              aria-live="polite"
+              aria-hidden={!copyFeedbackVisible}
             >
-              Download
-            </button>
+              {copyFeedback ?? ''}
+            </span>
             <button
               type="button"
-              className={exportMode === 'clipboard' ? 'btn btn-active' : 'btn'}
-              aria-pressed={exportMode === 'clipboard'}
-              onClick={() => onExportModeChange('clipboard')}
+              className="btn btn-primary"
+              onClick={onCopy}
+              disabled={!canExport}
+              title="Copy annotated image to clipboard"
             >
               Copy
             </button>
           </div>
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={onExport}
-            disabled={!canExport}
-          >
-            {exportMode === 'download' ? 'Download PNG' : 'Copy image'}
-          </button>
         </div>
       </div>
     </div>

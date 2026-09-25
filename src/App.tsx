@@ -21,11 +21,7 @@ import {
 } from './lib/exportImage'
 import { imageFileFromClipboardData, loadImageFromFile } from './lib/imageSource'
 import { EMPTY_DOCUMENT } from './types/annotations'
-import type {
-  AnnotationDocument,
-  ExportMode,
-  ToolId,
-} from './types/annotations'
+import type { AnnotationDocument, ToolId } from './types/annotations'
 
 const CLIPBOARD_COPIED_STATUS = 'Copied image to clipboard.'
 
@@ -37,7 +33,6 @@ function App() {
   const [image, setImage] = useState<HTMLImageElement | null>(null)
   const [history, setHistory] = useState<HistoryState>(() => createHistory())
   const [tool, setTool] = useState<ToolId>('select')
-  const [exportMode, setExportMode] = useState<ExportMode>('download')
   const [status, setStatus] = useState<string | null>(null)
   const [dragOver, setDragOver] = useState(false)
   /** Document snapshot at the start of the current pointer gesture (for one undo step). */
@@ -120,25 +115,35 @@ function App() {
     setStatus(null)
   }, [])
 
-  const handleExport = useCallback(async () => {
+  const handleDownload = useCallback(async () => {
     if (!image) {
       return
     }
     setStatus(null)
     try {
       const blob = await renderExportBlob(image, doc)
-      if (exportMode === 'download') {
-        downloadPng(blob)
-        setStatus('Downloaded PNG.')
-      } else {
-        await copyPngToClipboard(blob)
-        setStatus(CLIPBOARD_COPIED_STATUS)
-      }
+      downloadPng(blob)
+      setStatus('Downloaded PNG.')
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Export failed.'
       setStatus(message)
     }
-  }, [image, doc, exportMode])
+  }, [image, doc])
+
+  const handleCopy = useCallback(async () => {
+    if (!image) {
+      return
+    }
+    setStatus(null)
+    try {
+      const blob = await renderExportBlob(image, doc)
+      await copyPngToClipboard(blob)
+      setStatus(CLIPBOARD_COPIED_STATUS)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Export failed.'
+      setStatus(message)
+    }
+  }, [image, doc])
 
   const handleToolChange = useCallback(
     (next: ToolId) => {
@@ -148,18 +153,19 @@ function App() {
     [dismissStatus],
   )
 
-  const handleExportModeChange = useCallback(
-    (next: ExportMode) => {
-      dismissStatus()
-      setExportMode(next)
-    },
-    [dismissStatus],
-  )
-
   const handleOpenFile = useCallback(() => {
     dismissStatus()
     fileInputRef.current?.click()
   }, [dismissStatus])
+
+  const handleDownloadClick = useCallback(() => {
+    dismissStatus()
+    void handleDownload()
+  }, [dismissStatus, handleDownload])
+
+  const handleCopyClick = useCallback(() => {
+    void handleCopy()
+  }, [handleCopy])
 
   const handleClearClick = useCallback(() => {
     dismissStatus()
@@ -335,18 +341,17 @@ function App() {
         <Toolbar
           tool={tool}
           onToolChange={handleToolChange}
-          exportMode={exportMode}
-          onExportModeChange={handleExportModeChange}
           canUndo={canUndo(history)}
           canRedo={canRedo(history)}
           canExport={image != null}
           hasImage={image != null}
-          exportFeedback={clipboardFeedback}
+          copyFeedback={clipboardFeedback}
           onOpenFile={handleOpenFile}
           onClear={handleClearClick}
           onUndo={handleUndoClick}
           onRedo={handleRedoClick}
-          onExport={() => void handleExport()}
+          onDownload={handleDownloadClick}
+          onCopy={handleCopyClick}
           fileInputRef={fileInputRef}
           onFileChosen={onFileChosen}
         />

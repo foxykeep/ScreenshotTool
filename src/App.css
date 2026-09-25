@@ -52,17 +52,31 @@
 
 .toolbar-export {
   margin-left: auto;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.35rem;
 }
 
-.export-feedback {
+.toolbar-export-actions {
+  align-items: center;
+}
+
+.export-copy-anchor {
+  position: relative;
+  display: inline-flex;
+}
+
+.export-feedback-float {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.2rem);
   font-size: 0.8rem;
   color: var(--text-h);
   line-height: 1.2;
   white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.export-feedback-float.is-visible {
+  opacity: 1;
 }
 
 .btn {

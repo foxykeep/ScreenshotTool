@@ -16,7 +16,7 @@ Load a screenshot, annotate it, then export for sharing.
 | Text       | Place/edit fixed-size red text labels; move after create                  |
 | Selection  | Selected shape outlined in **blue**; `Delete`/`Backspace` removes it      |
 | Undo       | Undo last action (and ideally redo)                                       |
-| Export     | Switch: download PNG **or** copy image to clipboard                       |
+| Export     | **Download** PNG and **Copy** to clipboard (separate buttons)             |
 
 ## Out of scope for v1
 
@@ -27,7 +27,7 @@ Blur/redact, multiple colors, curved/elbow arrows, multi-page decks, accounts, n
 - Tools: Select, Rectangle, Arrow, Text (plus Clear image)
 - Shortcuts: **O** open, **S** select, **R** rectangle, **A** arrow, **T** text (ignored while editing text)
 - Default draw color: **red**; selection chrome: **blue**
-- Export control: toggle or segmented control between Download and Copy
+- Export: always-visible **Download** and **Copy** buttons; copy success shows a floating label above Copy (no toolbar layout shift)
 - File load lands on the canvas for annotation (Open, drop, or paste)
 - Text: fixed size; click to place, Enter/blur/click-canvas to commit, Escape to cancel; double-click an existing label (Select tool) to edit; overlay editor stays readable when the image is shrink-to-fit
 - Delete / Backspace removes the selected shape; ⌘/Ctrl+Z undo, ⌘/Ctrl+Shift+Z or Ctrl+Y redo
@@ -49,4 +49,4 @@ Vite + React + TypeScript on `localhost` (dev server port **4521**) and GitHub P
 2. Canvas shell + load image _(done)_
 3. Rectangle → Arrow → Text tools _(done)_
 4. Undo / redo _(done)_
-5. Export switch (download ↔ clipboard) _(done)_
+5. Export: Download + Copy buttons _(done)_

@@ -4,9 +4,6 @@ export type AnnotationId = string
 /** Active toolbar tool. */
 export type ToolId = 'select' | 'rectangle' | 'arrow' | 'text'
 
-/** How the finished canvas should leave the app. */
-export type ExportMode = 'download' | 'clipboard'
-
 /** Axis-aligned rectangle annotation. */
 export type RectangleAnnotation = {
   readonly id: AnnotationId
