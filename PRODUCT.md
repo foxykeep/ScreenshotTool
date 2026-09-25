@@ -37,7 +37,7 @@ Blur/redact, multiple colors, curved/elbow arrows, multi-page decks, accounts, n
 
 Vite + React + TypeScript on `localhost` (dev server port **4521**) and GitHub Pages. No backend for v1. Optional later: Tauri/Electron for dock icon or global hotkeys.
 
-**Release 1.1** adds clipboard paste-to-load on top of the 1.0 annotation + export slice. Live: https://foxykeep.github.io/ScreenshotTool/
+**Release 1.2** — separate Download/Copy buttons and unified export success toast. Live: https://foxykeep.github.io/ScreenshotTool/
 
 ## Known platform limits (v1)
 
