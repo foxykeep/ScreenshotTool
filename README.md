@@ -2,7 +2,7 @@
 
 Local (and GitHub Pages) web app to load a screenshot, annotate it (red rectangles, straight arrows, text), then export via download or clipboard.
 
-**Release:** [v1.2.0](https://github.com/foxykeep/ScreenshotTool/releases/tag/v1.2.0)  
+**Release:** [v1.3.0](https://github.com/foxykeep/ScreenshotTool/releases/tag/v1.3.0)  
 **Live:** [https://foxykeep.github.io/ScreenshotTool/](https://foxykeep.github.io/ScreenshotTool/)
 
 ## Stack
@@ -24,7 +24,7 @@ Open [http://127.0.0.1:4521](http://127.0.0.1:4521).
 ## Using the app
 
 1. **Open…**, drop an image, or paste (**⌘/Ctrl+V**) — also **O** to open
-2. Choose **Rectangle** (**R**), **Arrow** (**A**), or **Text** (**T**) to annotate (red). **Select** (**S**) to move/resize; selected shapes show blue chrome. You can draw into the margin around the image
+2. Choose **Rectangle** (**R**), **Arrow** (**A**), or **Text** (**T**) to annotate (red). **Select** (**S**) to move/resize; selected shapes show blue chrome. Scroll to zoom; middle-click or Space+drag to pan; **0** resets view
 3. **Undo** / **Redo**, or Delete/Backspace to remove the selection
 4. **Download** or **Copy** to export (PNG expands for out-of-bounds marks; only the export fills those zones with white)
 

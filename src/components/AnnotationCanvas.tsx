@@ -18,9 +18,24 @@ import { TEXT_FONT_SIZE } from '../types/annotations'
 import { drawDocument, normalizeRect } from '../canvas/draw'
 import { hitTest } from '../canvas/hitTest'
 import { resizeRectangle, translateAnnotation } from '../canvas/geometry'
+import {
+  DEFAULT_VIEWPORT,
+  displayScale,
+  screenToImage,
+  viewOrigin,
+  zoomAtScreenPoint,
+  type ViewportState,
+} from '../canvas/viewTransform'
 import { createAnnotationId } from '../lib/id'
 
 type DragMode =
+  | {
+      type: 'pan'
+      startSx: number
+      startSy: number
+      originPanX: number
+      originPanY: number
+    }
   | { type: 'create-rect'; id: string; startX: number; startY: number }
   | { type: 'create-arrow'; id: string; startX: number; startY: number }
   | {
@@ -81,7 +96,14 @@ export function AnnotationCanvas({
   const textEditorRef = useRef<TextEditor | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const ignoreTextBlurRef = useRef(false)
+  const spaceDownRef = useRef(false)
+  const viewportRef = useRef<ViewportState>(DEFAULT_VIEWPORT)
   const [viewSize, setViewSize] = useState({ width: 0, height: 0 })
+  const [viewport, setViewport] = useState<ViewportState>(DEFAULT_VIEWPORT)
+  const [spaceHeld, setSpaceHeld] = useState(false)
+  const [panDragging, setPanDragging] = useState(false)
+
+  viewportRef.current = viewport
 
   const pushLive = useCallback(
     (next: AnnotationDocument) => {
@@ -141,6 +163,49 @@ export function AnnotationCanvas({
     return () => ro.disconnect()
   }, [])
 
+  useEffect(() => {
+    setViewport(DEFAULT_VIEWPORT)
+  }, [image])
+
+  useEffect(() => {
+    const isEditableTarget = (target: EventTarget | null): boolean => {
+      const el = target as HTMLElement | null
+      return (
+        el != null &&
+        (el.tagName === 'INPUT' ||
+          el.tagName === 'TEXTAREA' ||
+          el.isContentEditable)
+      )
+    }
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.code !== 'Space' || e.repeat) {
+        if (e.key === '0' && !isEditableTarget(e.target) && image) {
+          setViewport(DEFAULT_VIEWPORT)
+        }
+        return
+      }
+      if (isEditableTarget(e.target)) {
+        return
+      }
+      e.preventDefault()
+      spaceDownRef.current = true
+      setSpaceHeld(true)
+    }
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        spaceDownRef.current = false
+        setSpaceHeld(false)
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    window.addEventListener('keyup', onKeyUp)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('keyup', onKeyUp)
+    }
+  }, [image])
+
   const layout = useMemo(
     () => computeLayout(image, viewSize.width, viewSize.height),
     [image, viewSize.width, viewSize.height],
@@ -152,7 +217,9 @@ export function AnnotationCanvas({
       return
     }
     const dpr = window.devicePixelRatio || 1
-    const { viewW, viewH, imageScale, offsetX, offsetY } = layout
+    const { viewW, viewH } = layout
+    const scale = displayScale(layout, viewport)
+    const { originX, originY } = viewOrigin(layout, viewport)
     canvas.width = Math.max(1, Math.floor(viewW * dpr))
     canvas.height = Math.max(1, Math.floor(viewH * dpr))
     const ctx = canvas.getContext('2d')
@@ -163,15 +230,40 @@ export function AnnotationCanvas({
     ctx.clearRect(0, 0, viewW, viewH)
     ctx.drawImage(
       image,
-      offsetX,
-      offsetY,
-      image.naturalWidth * imageScale,
-      image.naturalHeight * imageScale,
+      originX,
+      originY,
+      image.naturalWidth * scale,
+      image.naturalHeight * scale,
     )
-    ctx.translate(offsetX, offsetY)
-    ctx.scale(imageScale, imageScale)
+    ctx.translate(originX, originY)
+    ctx.scale(scale, scale)
     drawDocument(ctx, doc, draft)
-  }, [image, doc, draft, layout])
+  }, [image, doc, draft, layout, viewport])
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas || !image || !layout) {
+      return
+    }
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault()
+      const rect = canvas.getBoundingClientRect()
+      const sx = e.clientX - rect.left
+      const sy = e.clientY - rect.top
+      const view = viewportRef.current
+      const factor = Math.exp(-e.deltaY * 0.002)
+      const next = zoomAtScreenPoint(
+        layout,
+        view,
+        sx,
+        sy,
+        view.userZoom * factor,
+      )
+      setViewport(next)
+    }
+    canvas.addEventListener('wheel', onWheel, { passive: false })
+    return () => canvas.removeEventListener('wheel', onWheel)
+  }, [image, layout])
 
   const toImagePoint = useCallback(
     (clientX: number, clientY: number): { x: number; y: number } | null => {
@@ -180,14 +272,26 @@ export function AnnotationCanvas({
         return null
       }
       const rect = canvas.getBoundingClientRect()
-      const sx = clientX - rect.left
-      const sy = clientY - rect.top
-      return {
-        x: (sx - layout.offsetX) / layout.imageScale,
-        y: (sy - layout.offsetY) / layout.imageScale,
-      }
+      return screenToImage(
+        layout,
+        viewport,
+        clientX - rect.left,
+        clientY - rect.top,
+      )
     },
-    [layout],
+    [layout, viewport],
+  )
+
+  const toCanvasPoint = useCallback(
+    (clientX: number, clientY: number): { sx: number; sy: number } | null => {
+      const canvas = canvasRef.current
+      if (!canvas) {
+        return null
+      }
+      const rect = canvas.getBoundingClientRect()
+      return { sx: clientX - rect.left, sy: clientY - rect.top }
+    },
+    [],
   )
 
   const finishTextEditor = useCallback(
@@ -238,12 +342,32 @@ export function AnnotationCanvas({
       finishTextEditor(true)
       return
     }
-    const pt = toImagePoint(e.clientX, e.clientY)
-    if (!pt) {
-      return
-    }
+
     const canvas = canvasRef.current
     if (!canvas) {
+      return
+    }
+
+    const canvasPoint = toCanvasPoint(e.clientX, e.clientY)
+    const wantsPan =
+      canvasPoint != null &&
+      (spaceDownRef.current || e.button === 1)
+    if (wantsPan && canvasPoint) {
+      e.preventDefault()
+      canvas.setPointerCapture(e.pointerId)
+      dragRef.current = {
+        type: 'pan',
+        startSx: canvasPoint.sx,
+        startSy: canvasPoint.sy,
+        originPanX: viewport.panX,
+        originPanY: viewport.panY,
+      }
+      setPanDragging(true)
+      return
+    }
+
+    const pt = toImagePoint(e.clientX, e.clientY)
+    if (!pt) {
       return
     }
     const ctx = canvas.getContext('2d')
@@ -364,6 +488,20 @@ export function AnnotationCanvas({
     if (!drag) {
       return
     }
+
+    if (drag.type === 'pan') {
+      const canvasPoint = toCanvasPoint(e.clientX, e.clientY)
+      if (!canvasPoint) {
+        return
+      }
+      setViewport({
+        ...viewportRef.current,
+        panX: drag.originPanX + (canvasPoint.sx - drag.startSx),
+        panY: drag.originPanY + (canvasPoint.sy - drag.startSy),
+      })
+      return
+    }
+
     const pt = toImagePoint(e.clientX, e.clientY)
     if (!pt) {
       return
@@ -425,6 +563,11 @@ export function AnnotationCanvas({
       return
     }
 
+    if (drag.type === 'pan') {
+      setPanDragging(false)
+      return
+    }
+
     if (drag.type === 'create-rect') {
       const current = draftRef.current
       pushDraft(null)
@@ -475,7 +618,8 @@ export function AnnotationCanvas({
         <div className="canvas-empty" role="status">
           Open an image to start annotating.
           <span className="canvas-empty-hint">
-            Drop a file here, or paste with ⌘/Ctrl+V.
+            Drop a file here, or paste with ⌘/Ctrl+V. Scroll to zoom; middle-click
+            or Space+drag to pan; 0 resets view.
           </span>
         </div>
       ) : (
@@ -483,7 +627,9 @@ export function AnnotationCanvas({
           <canvas
             ref={canvasRef}
             className="annotation-canvas"
-            style={{ cursor: cursorForTool(tool) }}
+            style={{
+              cursor: cursorForView(tool, spaceHeld, panDragging),
+            }}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
@@ -497,10 +643,17 @@ export function AnnotationCanvas({
               placeholder="Label"
               aria-label="Text label"
               style={{
-                left: layout.offsetX + textEditor.x * layout.imageScale,
-                top: layout.offsetY + textEditor.y * layout.imageScale,
+                left:
+                  viewOrigin(layout, viewport).originX +
+                  textEditor.x * displayScale(layout, viewport),
+                top:
+                  viewOrigin(layout, viewport).originY +
+                  textEditor.y * displayScale(layout, viewport),
                 // Match on-canvas scale but keep a readable minimum while editing.
-                fontSize: `${Math.max(14, TEXT_FONT_SIZE * layout.imageScale)}px`,
+                fontSize: `${Math.max(
+                  14,
+                  TEXT_FONT_SIZE * displayScale(layout, viewport),
+                )}px`,
               }}
               onChange={(e) => {
                 const text = e.target.value
@@ -554,7 +707,17 @@ function upsert(
   return { shapes, selectedId: shape.id }
 }
 
-function cursorForTool(tool: ToolId): string {
+function cursorForView(
+  tool: ToolId,
+  spaceHeld: boolean,
+  panDragging: boolean,
+): string {
+  if (panDragging) {
+    return 'grabbing'
+  }
+  if (spaceHeld) {
+    return 'grab'
+  }
   switch (tool) {
     case 'select':
       return 'default'
