@@ -37,7 +37,7 @@ Blur/redact, multiple colors, curved/elbow arrows, multi-page decks, accounts, n
 
 Vite + React + TypeScript on `localhost` (dev server port **4521**) and GitHub Pages. No backend for v1. Optional later: Tauri/Electron for dock icon or global hotkeys.
 
-**Release 1.3** — canvas zoom (0.65×–8×) and pan (middle-click or Space+drag). Live: https://foxykeep.github.io/ScreenshotTool/
+**Release 1.4** — Space selects, click-to-select persists, zoom/pan (0.65×–8×). Live: https://foxykeep.github.io/ScreenshotTool/
 
 ## Known platform limits (v1)
 
