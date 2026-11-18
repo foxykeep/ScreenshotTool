@@ -6,6 +6,12 @@ import type {
   TextAnnotation,
 } from '../types/annotations'
 import type { AnnotationMetrics } from './annotationMetrics'
+import {
+  SCREEN_HANDLE_SIZE,
+  SCREEN_SELECTION_STROKE,
+  SCREEN_TEXT_CHROME_PAD,
+  imagePixelsFromScreen,
+} from './annotationMetrics'
 
 /** Draw-color red for shape strokes and text. */
 export const DRAW_COLOR = '#e53e3e'
@@ -132,6 +138,7 @@ export function drawDocument(
   doc: AnnotationDocument,
   draft: Annotation | null,
   metrics: AnnotationMetrics,
+  viewScale = 1,
 ): void {
   for (const shape of doc.shapes) {
     drawAnnotation(ctx, shape, metrics)
@@ -144,7 +151,7 @@ export function drawDocument(
       ? null
       : (doc.shapes.find((s) => s.id === doc.selectedId) ?? null)
   if (selected) {
-    drawSelectionChrome(ctx, selected, metrics)
+    drawSelectionChrome(ctx, selected, metrics, viewScale)
   }
 }
 
@@ -153,11 +160,17 @@ export function drawSelectionChrome(
   ctx: CanvasRenderingContext2D,
   shape: Annotation,
   metrics: AnnotationMetrics,
+  viewScale: number,
 ): void {
   ctx.save()
   ctx.strokeStyle = SELECTION_COLOR
   ctx.fillStyle = '#ffffff'
-  ctx.lineWidth = metrics.selectionStrokeWidth
+  ctx.lineWidth = imagePixelsFromScreen(SCREEN_SELECTION_STROKE, viewScale)
+
+  const selectionTextPad = imagePixelsFromScreen(
+    SCREEN_TEXT_CHROME_PAD,
+    viewScale,
+  )
 
   switch (shape.kind) {
     case 'rectangle': {
@@ -169,7 +182,7 @@ export function drawSelectionChrome(
       )
       ctx.strokeRect(x, y, w, h)
       for (const [hx, hy] of rectHandles(x, y, w, h)) {
-        drawHandle(ctx, hx, hy, metrics)
+        drawHandle(ctx, hx, hy, viewScale)
       }
       break
     }
@@ -178,18 +191,17 @@ export function drawSelectionChrome(
       ctx.moveTo(shape.x1, shape.y1)
       ctx.lineTo(shape.x2, shape.y2)
       ctx.stroke()
-      drawHandle(ctx, shape.x1, shape.y1, metrics)
-      drawHandle(ctx, shape.x2, shape.y2, metrics)
+      drawHandle(ctx, shape.x1, shape.y1, viewScale)
+      drawHandle(ctx, shape.x2, shape.y2, viewScale)
       break
     }
     case 'text': {
       const box = measureTextBox(ctx, shape.text, metrics)
-      const pad = metrics.textChromePad
       ctx.strokeRect(
-        shape.x - pad,
-        shape.y - pad,
-        box.width + pad * 2,
-        box.height + pad * 2,
+        shape.x - selectionTextPad,
+        shape.y - selectionTextPad,
+        box.width + selectionTextPad * 2,
+        box.height + selectionTextPad * 2,
       )
       break
     }
@@ -201,9 +213,9 @@ function drawHandle(
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
-  metrics: AnnotationMetrics,
+  viewScale: number,
 ): void {
-  const size = metrics.handleSize
+  const size = imagePixelsFromScreen(SCREEN_HANDLE_SIZE, viewScale)
   const half = size / 2
   ctx.fillRect(x - half, y - half, size, size)
   ctx.strokeRect(x - half, y - half, size, size)

@@ -1,80 +1,87 @@
-/**
- * Pixel sizes for annotations at the baseline tier (long edge ≤ 2400 px).
- * Documented in PRODUCT.md with larger-image tiers.
- */
-export const BASE_STROKE_WIDTH = 3
-export const BASE_TEXT_FONT_SIZE = 20
-const BASE_ARROWHEAD_LENGTH = 16
-const BASE_ARROWHEAD_WIDTH = 10
-const BASE_HANDLE_SIZE = 8
-const BASE_HANDLE_HIT = 10
-const BASE_HIT_PADDING = 6
-const BASE_ARROW_BOUNDS_PAD = 18
-const BASE_SELECTION_STROKE = 1.5
-const BASE_TEXT_CHROME_PAD = 2
-const BASE_TEXT_MIN_WIDTH = 12
+/** Baseline stroke at 1200 px long edge (1200/400 = 3). */
+export const STROKE_FLOOR = 3
+/** Image-pixel stroke ≈ longEdge / STROKE_DIVISOR (clamped). */
+export const STROKE_DIVISOR = 400
+/** Long edge used for sizing is capped before the formula (panoramas included). */
+export const SIZING_LONG_EDGE_CAP = 12000
+/** Max stroke at cap (12000/400). */
+export const STROKE_CAP = SIZING_LONG_EDGE_CAP / STROKE_DIVISOR
+/** Text size ≈ stroke × ratio (6.5 → ~20 px at 3 px stroke). */
+export const TEXT_STROKE_RATIO = 6.5
 
-/** Long-edge breakpoints (px) → scale multiplier (max 3×). */
-const TIER_SCALE = [
-  { maxLongEdge: 2400, scale: 1 },
-  { maxLongEdge: 4800, scale: 1.5 },
-  { maxLongEdge: 7200, scale: 2.25 },
-  { maxLongEdge: Infinity, scale: 3 },
-] as const
+/** On-screen constant sizes (CSS px); converted to image space via view scale. */
+export const SCREEN_HANDLE_SIZE = 8
+export const SCREEN_HANDLE_HIT = 10
+export const SCREEN_SELECTION_STROKE = 1.5
+export const SCREEN_HIT_SLACK = 6
+export const SCREEN_TEXT_CHROME_PAD = 2
 
-/** Resolved sizes for drawing, export, and hit-testing on one image. */
+/** Resolved image-space sizes for drawing and export. */
 export type AnnotationMetrics = {
   readonly longEdge: number
-  readonly tierScale: number
+  readonly shortEdge: number
+  readonly aspectRatio: number
   readonly strokeWidth: number
   readonly textFontSize: number
   readonly arrowheadLength: number
   readonly arrowheadWidth: number
-  readonly handleSize: number
-  readonly handleHit: number
-  readonly hitPadding: number
   readonly arrowBoundsPad: number
-  readonly selectionStrokeWidth: number
   readonly textChromePad: number
   readonly textMinWidth: number
 }
 
-function tierScaleForLongEdge(longEdge: number): number {
-  for (const tier of TIER_SCALE) {
-    if (longEdge <= tier.maxLongEdge) {
-      return tier.scale
-    }
-  }
-  return 3
-}
-
-function scalePx(base: number, multiplier: number): number {
-  return Math.round(base * multiplier * 2) / 2
+function roundHalf(value: number): number {
+  return Math.round(value * 2) / 2
 }
 
 /**
- * Metrics from the loaded image size. Same values on canvas and at export
- * resolution because everything is in image coordinates.
+ * Sizing long edge: always `max(width, height)` so wide/tall panoramas use the
+ * wide dimension, never the short edge or area.
+ */
+export function sizingLongEdge(width: number, height: number): number {
+  return Math.max(width, height, 1)
+}
+
+/**
+ * Converts a desired on-screen pixel size to image coordinates for the current
+ * fit/zoom scale (canvas applies `displayScale` when drawing).
+ */
+export function imagePixelsFromScreen(
+  screenPx: number,
+  viewScale: number,
+): number {
+  return screenPx / Math.max(viewScale, 1e-6)
+}
+
+/**
+ * Metrics from decoded image dimensions. Same on canvas (at any zoom) and in
+ * full-resolution export — strokes are chosen so fit-to-viewport looks similar
+ * across image sizes.
  */
 export function annotationMetricsForImage(
   width: number,
   height: number,
 ): AnnotationMetrics {
-  const longEdge = Math.max(width, height, 1)
-  const tierScale = tierScaleForLongEdge(longEdge)
+  const longEdge = sizingLongEdge(width, height)
+  const shortEdge = Math.max(Math.min(width, height), 1)
+  const aspectRatio = longEdge / shortEdge
+  const edgeForStroke = Math.min(longEdge, SIZING_LONG_EDGE_CAP)
+  const strokeWidth = roundHalf(
+    Math.min(STROKE_CAP, Math.max(STROKE_FLOOR, edgeForStroke / STROKE_DIVISOR)),
+  )
+  const textFontSize = Math.round(strokeWidth * TEXT_STROKE_RATIO)
+  const arrowRatio = 16 / 3
+  const arrowWidthRatio = 10 / 3
   return {
     longEdge,
-    tierScale,
-    strokeWidth: scalePx(BASE_STROKE_WIDTH, tierScale),
-    textFontSize: Math.round(BASE_TEXT_FONT_SIZE * tierScale),
-    arrowheadLength: scalePx(BASE_ARROWHEAD_LENGTH, tierScale),
-    arrowheadWidth: scalePx(BASE_ARROWHEAD_WIDTH, tierScale),
-    handleSize: scalePx(BASE_HANDLE_SIZE, tierScale),
-    handleHit: scalePx(BASE_HANDLE_HIT, tierScale),
-    hitPadding: scalePx(BASE_HIT_PADDING, tierScale),
-    arrowBoundsPad: scalePx(BASE_ARROW_BOUNDS_PAD, tierScale),
-    selectionStrokeWidth: scalePx(BASE_SELECTION_STROKE, tierScale),
-    textChromePad: scalePx(BASE_TEXT_CHROME_PAD, tierScale),
-    textMinWidth: scalePx(BASE_TEXT_MIN_WIDTH, tierScale),
+    shortEdge,
+    aspectRatio,
+    strokeWidth,
+    textFontSize,
+    arrowheadLength: roundHalf(strokeWidth * arrowRatio),
+    arrowheadWidth: roundHalf(strokeWidth * arrowWidthRatio),
+    arrowBoundsPad: roundHalf(strokeWidth * 6),
+    textChromePad: roundHalf(Math.max(2, strokeWidth * 0.66)),
+    textMinWidth: roundHalf(Math.max(12, strokeWidth * 4)),
   }
 }

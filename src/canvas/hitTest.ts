@@ -6,6 +6,12 @@ import type {
   TextAnnotation,
 } from '../types/annotations'
 import type { AnnotationMetrics } from './annotationMetrics'
+import {
+  SCREEN_HANDLE_HIT,
+  SCREEN_HIT_SLACK,
+  SCREEN_TEXT_CHROME_PAD,
+  imagePixelsFromScreen,
+} from './annotationMetrics'
 import { measureTextBox, normalizeRect, rectHandles } from './draw'
 
 /** Which part of a shape was hit for pointer interaction. */
@@ -24,6 +30,7 @@ export function hitTest(
   px: number,
   py: number,
   metrics: AnnotationMetrics,
+  viewScale: number,
 ): HitTarget {
   const selected =
     doc.selectedId == null
@@ -31,13 +38,13 @@ export function hitTest(
       : doc.shapes.find((s) => s.id === doc.selectedId)
 
   if (selected?.kind === 'rectangle') {
-    const handle = hitRectHandle(selected, px, py, metrics)
+    const handle = hitRectHandle(selected, px, py, viewScale)
     if (handle != null) {
       return { kind: 'rect-handle', shape: selected, handleIndex: handle }
     }
   }
   if (selected?.kind === 'arrow') {
-    const endpoint = hitArrowHandle(selected, px, py, metrics)
+    const endpoint = hitArrowHandle(selected, px, py, viewScale)
     if (endpoint != null) {
       return { kind: 'arrow-handle', shape: selected, endpoint }
     }
@@ -45,7 +52,7 @@ export function hitTest(
 
   for (let i = doc.shapes.length - 1; i >= 0; i -= 1) {
     const shape = doc.shapes[i]!
-    if (hitsShape(ctx, shape, px, py, metrics)) {
+    if (hitsShape(ctx, shape, px, py, metrics, viewScale)) {
       return { kind: 'shape', shape }
     }
   }
@@ -56,7 +63,7 @@ function hitRectHandle(
   shape: RectangleAnnotation,
   px: number,
   py: number,
-  metrics: AnnotationMetrics,
+  viewScale: number,
 ): number | null {
   const { x, y, w, h } = normalizeRect(
     shape.x,
@@ -65,7 +72,7 @@ function hitRectHandle(
     shape.height,
   )
   const handles = rectHandles(x, y, w, h)
-  const hit = metrics.handleHit
+  const hit = imagePixelsFromScreen(SCREEN_HANDLE_HIT, viewScale)
   for (let i = 0; i < handles.length; i += 1) {
     const [hx, hy] = handles[i]!
     if (Math.abs(px - hx) <= hit && Math.abs(py - hy) <= hit) {
@@ -79,9 +86,9 @@ function hitArrowHandle(
   shape: ArrowAnnotation,
   px: number,
   py: number,
-  metrics: AnnotationMetrics,
+  viewScale: number,
 ): 'start' | 'end' | null {
-  const hit = metrics.handleHit
+  const hit = imagePixelsFromScreen(SCREEN_HANDLE_HIT, viewScale)
   if (Math.hypot(px - shape.x1, py - shape.y1) <= hit) {
     return 'start'
   }
@@ -97,15 +104,26 @@ function hitsShape(
   px: number,
   py: number,
   metrics: AnnotationMetrics,
+  viewScale: number,
 ): boolean {
   switch (shape.kind) {
     case 'rectangle':
-      return hitsRectangle(shape, px, py, metrics)
+      return hitsRectangle(shape, px, py, metrics, viewScale)
     case 'arrow':
-      return hitsArrow(shape, px, py, metrics)
+      return hitsArrow(shape, px, py, metrics, viewScale)
     case 'text':
-      return hitsText(ctx, shape, px, py, metrics)
+      return hitsText(ctx, shape, px, py, metrics, viewScale)
   }
+}
+
+function shapeHitSlack(
+  metrics: AnnotationMetrics,
+  viewScale: number,
+): number {
+  return (
+    metrics.strokeWidth / 2 +
+    imagePixelsFromScreen(SCREEN_HIT_SLACK, viewScale)
+  )
 }
 
 function hitsRectangle(
@@ -113,6 +131,7 @@ function hitsRectangle(
   px: number,
   py: number,
   metrics: AnnotationMetrics,
+  viewScale: number,
 ): boolean {
   const { x, y, w, h } = normalizeRect(
     shape.x,
@@ -120,7 +139,7 @@ function hitsRectangle(
     shape.width,
     shape.height,
   )
-  const pad = metrics.hitPadding
+  const pad = shapeHitSlack(metrics, viewScale)
   return (
     px >= x - pad && px <= x + w + pad && py >= y - pad && py <= y + h + pad
   )
@@ -131,8 +150,9 @@ function hitsArrow(
   px: number,
   py: number,
   metrics: AnnotationMetrics,
+  viewScale: number,
 ): boolean {
-  const pad = metrics.hitPadding + metrics.strokeWidth / 2
+  const pad = shapeHitSlack(metrics, viewScale)
   return (
     distanceToSegment(px, py, shape.x1, shape.y1, shape.x2, shape.y2) <= pad
   )
@@ -144,9 +164,13 @@ function hitsText(
   px: number,
   py: number,
   metrics: AnnotationMetrics,
+  viewScale: number,
 ): boolean {
   const box = measureTextBox(ctx, shape.text, metrics)
-  const pad = metrics.textChromePad
+  const pad = Math.max(
+    metrics.textChromePad,
+    imagePixelsFromScreen(SCREEN_TEXT_CHROME_PAD, viewScale),
+  )
   return (
     px >= shape.x - pad &&
     px <= shape.x + box.width + pad &&

@@ -248,7 +248,7 @@ export function AnnotationCanvas({
     )
     ctx.translate(originX, originY)
     ctx.scale(scale, scale)
-    drawDocument(ctx, doc, draft, metrics)
+    drawDocument(ctx, doc, draft, metrics, scale)
   }, [image, doc, draft, layout, viewport, metrics])
 
   useEffect(() => {
@@ -443,11 +443,12 @@ export function AnnotationCanvas({
       return
     }
 
-    if (!metrics) {
+    if (!metrics || !layout) {
       return
     }
     applyTextFont(ctx, metrics)
-    const hit = hitTest(ctx, doc, pt.x, pt.y, metrics)
+    const viewScale = displayScale(layout, viewport)
+    const hit = hitTest(ctx, doc, pt.x, pt.y, metrics, viewScale)
     if (!hit) {
       onSelect(null)
       dragRef.current = null
