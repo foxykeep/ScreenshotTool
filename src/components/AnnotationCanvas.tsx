@@ -14,8 +14,8 @@ import type {
   TextAnnotation,
   ToolId,
 } from '../types/annotations'
-import { TEXT_FONT_SIZE } from '../types/annotations'
-import { drawDocument, normalizeRect } from '../canvas/draw'
+import { annotationMetricsForImage } from '../canvas/annotationMetrics'
+import { applyTextFont, drawDocument, normalizeRect } from '../canvas/draw'
 import { hitTest } from '../canvas/hitTest'
 import { resizeRectangle, translateAnnotation } from '../canvas/geometry'
 import {
@@ -214,9 +214,17 @@ export function AnnotationCanvas({
     [image, viewSize.width, viewSize.height],
   )
 
+  const metrics = useMemo(
+    () =>
+      image
+        ? annotationMetricsForImage(image.naturalWidth, image.naturalHeight)
+        : null,
+    [image],
+  )
+
   useEffect(() => {
     const canvas = canvasRef.current
-    if (!canvas || !image || !layout) {
+    if (!canvas || !image || !layout || !metrics) {
       return
     }
     const dpr = window.devicePixelRatio || 1
@@ -240,8 +248,8 @@ export function AnnotationCanvas({
     )
     ctx.translate(originX, originY)
     ctx.scale(scale, scale)
-    drawDocument(ctx, doc, draft)
-  }, [image, doc, draft, layout, viewport])
+    drawDocument(ctx, doc, draft, metrics)
+  }, [image, doc, draft, layout, viewport, metrics])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -435,7 +443,11 @@ export function AnnotationCanvas({
       return
     }
 
-    const hit = hitTest(ctx, doc, pt.x, pt.y)
+    if (!metrics) {
+      return
+    }
+    applyTextFont(ctx, metrics)
+    const hit = hitTest(ctx, doc, pt.x, pt.y, metrics)
     if (!hit) {
       onSelect(null)
       dragRef.current = null
@@ -675,7 +687,8 @@ export function AnnotationCanvas({
                 // Match on-canvas scale but keep a readable minimum while editing.
                 fontSize: `${Math.max(
                   14,
-                  TEXT_FONT_SIZE * displayScale(layout, viewport),
+                  (metrics?.textFontSize ?? 20) *
+                    displayScale(layout, viewport),
                 )}px`,
               }}
               onChange={(e) => {

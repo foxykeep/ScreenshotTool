@@ -1,5 +1,10 @@
-import type { Annotation, ArrowAnnotation, RectangleAnnotation, TextAnnotation } from '../types/annotations'
-import { SHAPE_STROKE_WIDTH } from '../types/annotations'
+import type {
+  Annotation,
+  ArrowAnnotation,
+  RectangleAnnotation,
+  TextAnnotation,
+} from '../types/annotations'
+import type { AnnotationMetrics } from './annotationMetrics'
 import { measureTextBox, normalizeRect } from './draw'
 
 /** Axis-aligned bounds in image coordinates. */
@@ -9,8 +14,6 @@ export type Bounds = {
   maxX: number
   maxY: number
 }
-
-const ARROWHEAD_PAD = 18
 
 /** Pads a bounds box equally on all sides. */
 export function expandBounds(bounds: Bounds, pad: number): Bounds {
@@ -36,14 +39,15 @@ export function unionBounds(a: Bounds, b: Bounds): Bounds {
 export function boundsForAnnotation(
   ctx: CanvasRenderingContext2D,
   shape: Annotation,
+  metrics: AnnotationMetrics,
 ): Bounds {
   switch (shape.kind) {
     case 'rectangle':
       return boundsForRectangle(shape)
     case 'arrow':
-      return boundsForArrow(shape)
+      return boundsForArrow(shape, metrics)
     case 'text':
-      return boundsForText(ctx, shape)
+      return boundsForText(ctx, shape, metrics)
   }
 }
 
@@ -56,6 +60,7 @@ export function contentBounds(
   imageWidth: number,
   imageHeight: number,
   shapes: readonly Annotation[],
+  metrics: AnnotationMetrics,
   draft: Annotation | null = null,
 ): Bounds {
   let bounds: Bounds = {
@@ -65,12 +70,15 @@ export function contentBounds(
     maxY: imageHeight,
   }
   for (const shape of shapes) {
-    bounds = unionBounds(bounds, boundsForAnnotation(ctx, shape))
+    bounds = unionBounds(bounds, boundsForAnnotation(ctx, shape, metrics))
   }
   if (draft) {
-    bounds = unionBounds(bounds, boundsForAnnotation(ctx, draft))
+    bounds = unionBounds(bounds, boundsForAnnotation(ctx, draft, metrics))
   }
-  return expandBounds(bounds, Math.ceil(SHAPE_STROKE_WIDTH / 2) + 1)
+  return expandBounds(
+    bounds,
+    Math.ceil(metrics.strokeWidth / 2) + metrics.textChromePad,
+  )
 }
 
 function boundsForRectangle(shape: RectangleAnnotation): Bounds {
@@ -83,24 +91,30 @@ function boundsForRectangle(shape: RectangleAnnotation): Bounds {
   return { minX: x, minY: y, maxX: x + w, maxY: y + h }
 }
 
-function boundsForArrow(shape: ArrowAnnotation): Bounds {
+function boundsForArrow(
+  shape: ArrowAnnotation,
+  metrics: AnnotationMetrics,
+): Bounds {
+  const pad = metrics.arrowBoundsPad
   return {
-    minX: Math.min(shape.x1, shape.x2) - ARROWHEAD_PAD,
-    minY: Math.min(shape.y1, shape.y2) - ARROWHEAD_PAD,
-    maxX: Math.max(shape.x1, shape.x2) + ARROWHEAD_PAD,
-    maxY: Math.max(shape.y1, shape.y2) + ARROWHEAD_PAD,
+    minX: Math.min(shape.x1, shape.x2) - pad,
+    minY: Math.min(shape.y1, shape.y2) - pad,
+    maxX: Math.max(shape.x1, shape.x2) + pad,
+    maxY: Math.max(shape.y1, shape.y2) + pad,
   }
 }
 
 function boundsForText(
   ctx: CanvasRenderingContext2D,
   shape: TextAnnotation,
+  metrics: AnnotationMetrics,
 ): Bounds {
-  const box = measureTextBox(ctx, shape.text)
+  const box = measureTextBox(ctx, shape.text, metrics)
+  const pad = metrics.textChromePad
   return {
-    minX: shape.x - 2,
-    minY: shape.y - 2,
-    maxX: shape.x + box.width + 2,
-    maxY: shape.y + box.height + 2,
+    minX: shape.x - pad,
+    minY: shape.y - pad,
+    maxX: shape.x + box.width + pad,
+    maxY: shape.y + box.height + pad,
   }
 }

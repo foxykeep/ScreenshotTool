@@ -42,10 +42,10 @@ export type AnnotationDocument = {
   readonly selectedId: AnnotationId | null
 }
 
-/** Fixed text size for v1 (not user-resizable). */
+/** Baseline text size at tier 1 (long edge ≤ 2400 px); see `annotationMetrics`. */
 export const TEXT_FONT_SIZE = 20
 
-/** Canvas stroke width for shapes. */
+/** Baseline stroke width at tier 1; see `annotationMetrics`. */
 export const SHAPE_STROKE_WIDTH = 3
 
 /** Empty document used when clearing annotations. */

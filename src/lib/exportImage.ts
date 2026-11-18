@@ -1,4 +1,5 @@
 import type { AnnotationDocument } from '../types/annotations'
+import { annotationMetricsForImage } from '../canvas/annotationMetrics'
 import { contentBounds } from '../canvas/bounds'
 import { drawDocument } from '../canvas/draw'
 
@@ -16,11 +17,16 @@ export async function renderExportBlob(
   if (!measure) {
     throw new Error('Could not create export canvas.')
   }
+  const metrics = annotationMetricsForImage(
+    image.naturalWidth,
+    image.naturalHeight,
+  )
   const bounds = contentBounds(
     measure,
     image.naturalWidth,
     image.naturalHeight,
     doc.shapes,
+    metrics,
   )
   const width = Math.max(1, Math.ceil(bounds.maxX - bounds.minX))
   const height = Math.max(1, Math.ceil(bounds.maxY - bounds.minY))
@@ -37,7 +43,7 @@ export async function renderExportBlob(
   ctx.fillRect(0, 0, width, height)
   ctx.drawImage(image, -bounds.minX, -bounds.minY)
   ctx.translate(-bounds.minX, -bounds.minY)
-  drawDocument(ctx, { shapes: doc.shapes, selectedId: null }, null)
+  drawDocument(ctx, { shapes: doc.shapes, selectedId: null }, null, metrics)
 
   return new Promise((resolve, reject) => {
     canvas.toBlob(
