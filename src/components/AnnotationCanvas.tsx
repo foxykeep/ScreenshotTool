@@ -28,6 +28,9 @@ import {
 } from '../canvas/viewTransform'
 import { createAnnotationId } from '../lib/id'
 
+/** Ignore sub-pixel jitter; clicks without real drag should not commit history. */
+const POINTER_DRAG_THRESHOLD = 3
+
 type DragMode =
   | {
       type: 'pan'
@@ -530,6 +533,11 @@ export function AnnotationCanvas({
       return
     }
     if (drag.type === 'move') {
+      if (
+        Math.hypot(pt.x - drag.startX, pt.y - drag.startY) < POINTER_DRAG_THRESHOLD
+      ) {
+        return
+      }
       const moved = translateAnnotation(
         drag.origin,
         pt.x - drag.startX,
@@ -606,6 +614,21 @@ export function AnnotationCanvas({
         return
       }
       onDocumentCommit(upsert(liveDocRef.current, current))
+      return
+    }
+
+    if (
+      drag.type === 'move' ||
+      drag.type === 'resize-rect' ||
+      drag.type === 'resize-arrow'
+    ) {
+      const shape = liveDocRef.current.shapes.find((s) => s.id === drag.id)
+      if (shape != null && annotationGeometryEquals(shape, drag.origin)) {
+        // Click-to-select only: selection was set on pointer down; committing
+        // stale liveDocRef would drop selectedId.
+        return
+      }
+      onDocumentCommit(liveDocRef.current)
       return
     }
 
@@ -705,6 +728,32 @@ function upsert(
   const shapes = doc.shapes.slice()
   shapes[index] = shape
   return { shapes, selectedId: shape.id }
+}
+
+function annotationGeometryEquals(a: Annotation, b: Annotation): boolean {
+  if (a.kind !== b.kind) {
+    return false
+  }
+  switch (a.kind) {
+    case 'rectangle':
+      return (
+        b.kind === 'rectangle' &&
+        a.x === b.x &&
+        a.y === b.y &&
+        a.width === b.width &&
+        a.height === b.height
+      )
+    case 'arrow':
+      return (
+        b.kind === 'arrow' &&
+        a.x1 === b.x1 &&
+        a.y1 === b.y1 &&
+        a.x2 === b.x2 &&
+        a.y2 === b.y2
+      )
+    case 'text':
+      return b.kind === 'text' && a.x === b.x && a.y === b.y && a.text === b.text
+  }
 }
 
 function cursorForView(
