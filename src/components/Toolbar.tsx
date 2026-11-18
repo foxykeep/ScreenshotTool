@@ -21,7 +21,7 @@ type ToolbarProps = {
 }
 
 const TOOLS: { id: ToolId; label: string; shortcut: string }[] = [
-  { id: 'select', label: 'Select', shortcut: 'S' },
+  { id: 'select', label: 'Select', shortcut: 'S / Space' },
   { id: 'rectangle', label: 'Rectangle', shortcut: 'R' },
   { id: 'arrow', label: 'Arrow', shortcut: 'A' },
   { id: 'text', label: 'Text', shortcut: 'T' },

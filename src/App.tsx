@@ -269,6 +269,15 @@ function App() {
         return
       }
 
+      if (e.code === 'Space') {
+        if (e.repeat) {
+          return
+        }
+        e.preventDefault()
+        handleToolChange('select')
+        return
+      }
+
       const key = e.key.toLowerCase()
       if (key === 'o') {
         e.preventDefault()

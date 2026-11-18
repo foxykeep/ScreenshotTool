@@ -25,7 +25,7 @@ Blur/redact, multiple colors, curved/elbow arrows, multi-page decks, accounts, n
 ## UX
 
 - Tools: Select, Rectangle, Arrow, Text (plus Clear image)
-- Shortcuts: **O** open, **S** select, **R** rectangle, **A** arrow, **T** text (ignored while editing text)
+- Shortcuts: **O** open, **S** or **Space** select, **R** rectangle, **A** arrow, **T** text (ignored while editing text). **Space** held + drag pans (with middle-click drag)
 - Default draw color: **red**; selection chrome: **blue**
 - Export: always-visible **Download** and **Copy** buttons; success messages (`Downloaded PNG.`, `Copied image to clipboard.`) share a floating label above the export buttons (no toolbar layout shift)
 - File load lands on the canvas for annotation (Open, drop, or paste)
